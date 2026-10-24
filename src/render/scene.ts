@@ -34,6 +34,30 @@ function tintAt(logd: number) {
   return { tint: mix(a[1], b[1]), h1: mix(a[2], b[2]), h2: mix(a[3], b[3]) };
 }
 
+const texLoader = new THREE.TextureLoader();
+const texCache = new Map<string, Promise<THREE.Texture>>();
+const BASE = import.meta.env.BASE_URL;
+
+function loadTexture(name: string, renderer: THREE.WebGLRenderer) {
+  let t = texCache.get(name);
+  if (!t) {
+    const file = name.includes('.') ? name : `${name}.jpg`;
+    t = texLoader.loadAsync(`${BASE}textures/${file}`).then((tex) => {
+      tex.colorSpace = THREE.NoColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      return tex;
+    });
+    texCache.set(name, t);
+  }
+  return t;
+}
+
+/** Every texture used by the catalogue, for background preloading. */
+export function allTextures() {
+  return [...new Set(OBJECTS.flatMap((o) => o.look.tex ?? []))];
+}
+
 export class Universe {
   readonly renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
@@ -133,7 +157,7 @@ export class Universe {
     const col = (h?: string) => new THREE.Color(h ?? '#ffffff');
     const orb = new Array(8).fill(0);
     (L.orbits ?? []).forEach((v, i) => (orb[i] = v));
-    return new THREE.ShaderMaterial({
+    const mat = new THREE.ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAGMENTS[o.kind],
       transparent: true,
@@ -153,8 +177,24 @@ export class Universe {
         uQ: { value: new THREE.Vector4(...(L.q ?? [0, 0, 0, 0])) },
         uOrb: { value: orb },
         uOrbN: { value: L.orbits?.length ?? 0 },
+        uMap: { value: null },
+        uMap2: { value: null },
+        uMap3: { value: null },
+        uMap4: { value: null },
+        uLoaded: { value: L.tex ? 0 : 1 },
       },
     });
+    if (L.tex) {
+      Promise.all(L.tex.map((n) => loadTexture(n, this.renderer))).then((texs) => {
+        texs.forEach((t, i) => (mat.uniforms[i === 0 ? 'uMap' : `uMap${i + 1}`].value = t));
+        mat.userData.loadedAt = performance.now();
+      });
+    }
+    return mat;
+  }
+
+  preload() {
+    allTextures().forEach((n) => loadTexture(n, this.renderer));
   }
 
   render(progress: number, time: number): Placed[] {
@@ -195,6 +235,8 @@ export class Universe {
       u.uTime.value = time;
       u.uPx.value = r * dpr;
       u.uAlpha.value = Math.min(1, r / 1.5);
+      const at = m.material.userData.loadedAt as number | undefined;
+      if (at !== undefined) u.uLoaded.value = Math.min(1, (performance.now() - at) / 500);
       placed.push({ index: i, x, y: -yOff, r, ext });
     }
 

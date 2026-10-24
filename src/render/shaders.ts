@@ -1,3 +1,5 @@
+import { ASTEROID3D, EARTH_REAL, STAR_REAL, TEXTURED } from './realistic';
+
 // All visuals are procedural: every object is a quad rendered with a
 // fragment shader. `vP` runs from -ext..ext, so the body's edge is at r = 1.
 
@@ -10,16 +12,18 @@ void main() {
 }
 `;
 
-const COMMON = /* glsl */ `
+export const COMMON = /* glsl */ `
 precision highp float;
 uniform float uTime, uSeed, uExt, uPx, uAlpha;
 uniform vec3 uC1, uC2, uC3, uC4;
 uniform vec4 uP, uQ;
 uniform float uOrb[8];
 uniform int uOrbN;
+uniform sampler2D uMap, uMap2, uMap3, uMap4;
+uniform float uLoaded;
 varying vec2 vP;
 
-const vec3 LIGHT = vec3(-0.549, 0.35, 0.759);
+const vec3 LIGHT = vec3(-0.776, 0.296, 0.557);
 
 // Hashes without sine (Dave Hoskins, MIT)
 float hash21(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -46,6 +50,18 @@ float fbm3(vec3 p) {
   return s / 0.875;
 }
 
+vec3 toLin(vec3 c) { return pow(max(c, 0.0), vec3(2.2)); }
+vec3 toSrgb(vec3 c) { return pow(max(c, 0.0), vec3(1.0 / 2.2)); }
+// Equirectangular lookup with seam-free mip selection.
+vec4 texSph(sampler2D t, vec3 q) {
+  vec2 uv = vec2(atan(q.x, q.z) / 6.2831853 + 0.5, asin(clamp(q.y, -1.0, 1.0)) / 3.14159265 + 0.5);
+  vec2 uv2 = vec2(fract(uv.x + 0.5), uv.y);
+  vec2 dx = dFdx(uv), dy = dFdy(uv);
+  vec2 dx2 = dFdx(uv2), dy2 = dFdy(uv2);
+  if (abs(dx2.x) < abs(dx.x)) dx.x = dx2.x;
+  if (abs(dy2.x) < abs(dy.x)) dy.x = dy2.x;
+  return textureGrad(t, uv, dx, dy);
+}
 mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
 vec3 rotY(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(c * v.x + s * v.z, v.y, -s * v.x + c * v.z); }
 vec3 sphere(vec2 p) { return vec3(p, sqrt(max(0.0, 1.0 - dot(p, p)))); }
@@ -182,82 +198,6 @@ void main() {
 }
 `;
 
-const ASTEROID = /* glsl */ `
-void main() {
-  vec2 p = rot(uTime * 0.015 + uSeed) * vP;
-  float r = length(p);
-  vec2 dir = p / max(r, 1e-4);
-  float R = 1.0 - uP.x * fbm3(vec3(dir * 1.4, uSeed));
-  float ang = atan(dir.y, dir.x);
-  R *= 1.0 - uP.z * 0.33 * exp(-pow((abs(ang) - 1.5708) / 0.45, 2.0));
-  vec4 o = vec4(0.0);
-  if (uP.w > 0.0) {
-    float coma = exp(-r * 2.2) * 0.35;
-    vec2 t = rot(-0.5) * vP;
-    float tail = exp(-pow(t.y / (0.12 + 0.18 * max(t.x, 0.0)), 2.0)) * smoothstep(0.0, 0.4, t.x) * exp(-t.x * 0.9) * 0.4;
-    float jets = pow(max(0.0, fbm3(vec3(ang * 2.0, r * 2.0 - uTime * 0.3, uSeed))), 3.0) * exp(-r * 1.5) * 0.6;
-    o = vec4(uC4, clamp((coma + tail + jets) * uP.w * smoothstep(uExt, uExt * 0.7, r), 0.0, 1.0));
-  }
-  if (r < R + 0.02) {
-    vec2 pn = p / R;
-    vec3 n = normalize(vec3(pn, sqrt(max(0.0, 1.0 - dot(pn, pn))) + 0.15));
-    vec3 q = vec3(pn, n.z) + uSeed;
-    float f = uP.y * 2.0;
-    float h = fbm(q * f * 2.0);
-    vec3 alb = mix(uC1, uC2, smoothstep(0.3, 0.75, h));
-    alb = mix(alb, uC3, smoothstep(0.6, 0.85, fbm(q * f * 5.0 + 7.0)) * 0.4);
-    vec3 L = vec3(rot(-uTime * 0.015 - uSeed) * LIGHT.xy, LIGHT.z);
-    float c0 = craters(q * f * 2.0) * 0.6 + craters(q * f * 5.0 + 2.0) * 0.3;
-    vec3 q2 = q + L * 0.02;
-    float c1 = craters(q2 * f * 2.0) * 0.6 + craters(q2 * f * 5.0 + 2.0) * 0.3;
-    float hb = fbm(q2 * f * 2.0);
-    float shade = (c1 - c0) * 14.0 + (hb - h) * 14.0;
-    float lam = max(dot(n, L), 0.0);
-    vec3 col = alb * (0.03 + 1.15 * lam * clamp(1.0 + shade, 0.15, 2.2));
-    o = over(vec4(col, edge(r, R)), o);
-  }
-  gl_FragColor = vec4(o.rgb, o.a * uAlpha);
-}
-`;
-
-const EARTH = /* glsl */ `
-void main() {
-  vec2 p = vP; float r = length(p);
-  vec3 atm = vec3(0.35, 0.6, 1.0);
-  float g = exp(-(r - 1.0) / (uExt - 1.0) * 3.0) * smoothstep(uExt, 1.0, r) * step(0.98, r);
-  vec4 o = vec4(atm, g * 0.55);
-  if (r < 1.0) {
-    vec3 n = sphere(p);
-    vec3 q = rotY(n, uTime * 0.05 + 2.0);
-    float c = fbm(q * 1.8 + 3.1);
-    float land = smoothstep(0.52, 0.535, c);
-    float lat = abs(q.y);
-    float desert = smoothstep(0.5, 0.62, fbm(q * 3.0 + 9.0)) * smoothstep(0.45, 0.1, abs(lat - 0.3));
-    vec3 landCol = mix(uC2 * (0.6 + 0.6 * fbm(q * 9.0)), uC3, desert);
-    vec3 ocean = mix(uC1 * 0.55, uC1 * 1.35, smoothstep(0.3, 0.52, c));
-    vec3 alb = mix(ocean, landCol, land);
-    float ice = smoothstep(0.8, 0.86, lat + (c - 0.5) * 0.25);
-    alb = mix(alb, vec3(0.93, 0.96, 1.0), ice);
-    vec3 cq = rotY(n, uTime * 0.065 + 1.0);
-    float cl = fbm(cq * 3.0 + vec3(0.0, uTime * 0.01, 0.0));
-    cl = smoothstep(0.52, 0.78, cl + 0.07 * sin(q.y * 9.0));
-    float ndl = dot(n, LIGHT);
-    float lam = max(ndl, 0.0);
-    vec3 col = alb * lam * 1.1;
-    vec3 H = normalize(LIGHT + vec3(0.0, 0.0, 1.0));
-    col += pow(max(dot(n, H), 0.0), 40.0) * (1.0 - land) * (1.0 - cl) * 0.6;
-    col = mix(col, vec3(1.0) * (0.03 + lam * 1.05), cl * 0.92);
-    float night = smoothstep(0.05, -0.2, ndl);
-    float city = step(0.82, hash31(floor(q * 140.0))) * land * (1.0 - ice) * (1.0 - cl);
-    col += vec3(1.0, 0.72, 0.38) * city * night * smoothstep(0.42, 0.6, fbm(q * 6.0));
-    float fr = pow(1.0 - n.z, 2.5);
-    col += atm * fr * 0.8 * smoothstep(-0.25, 0.5, ndl);
-    o = over(vec4(col, edge(r, 1.0)), o);
-  }
-  gl_FragColor = vec4(o.rgb, o.a * uAlpha);
-}
-`;
-
 const GAS = /* glsl */ `
 vec4 rings(vec2 p, out bool behind) {
   vec2 rp = rot(uQ.w) * p;
@@ -321,35 +261,6 @@ void main() {
   }
   if (behind) { o = over(ring, o); o = over(planet, o); }
   else { o = over(planet, o); o = over(ring, o); }
-  gl_FragColor = vec4(o.rgb, o.a * uAlpha);
-}
-`;
-
-const STAR = /* glsl */ `
-void main() {
-  vec2 p = vP; float r = length(p);
-  float glow = (0.6 * exp(-(r - 1.0) * 7.0) + 0.3 * exp(-(r - 1.0) * 2.2)) * smoothstep(uExt, uExt * 0.7, r);
-  float ang = atan(p.y, p.x);
-  glow *= 0.85 + 0.3 * fbm3(vec3(cos(ang) * 3.0, sin(ang) * 3.0, uTime * 0.15 + r));
-  vec4 o = vec4(uC1, clamp(glow, 0.0, 1.0) * step(0.97, r));
-  if (uP.z > 0.0) {
-    float dust = fbm(vec3(p * 2.2, uTime * 0.02 + uSeed)) * smoothstep(uExt, 1.0, r) * step(0.98, r);
-    o = over(vec4(uC3 * 0.8, smoothstep(0.35, 0.8, dust) * 0.55 * uP.z), o);
-  }
-  if (r < 1.0) {
-    vec3 n = sphere(p);
-    vec3 q = rotY(n, uTime * 0.015 + uSeed);
-    float fq = 9.0 / uP.x;
-    float gran = fbm(q * fq + vec3(0.0, uTime * 0.04, 0.0));
-    float g2 = noise(q * fq * 3.0 + uTime * 0.1);
-    float mu = n.z;
-    float limb = 0.3 + 0.7 * pow(mu, 0.55);
-    vec3 c = mix(uC3, uC1, limb);
-    c = mix(c, uC2, pow(mu, 3.0) * 0.55);
-    c *= 0.88 + uP.y * 0.3 * (gran - 0.5) * 2.0 + 0.1 * g2;
-    c *= 1.0 - smoothstep(1.5, 4.0, uP.x) * 0.3 * smoothstep(0.58, 0.78, fbm(q * fq * 0.4 + 7.0));
-    o = over(vec4(c * 1.15, edge(r, 1.0)), o);
-  }
   gl_FragColor = vec4(o.rgb, o.a * uAlpha);
 }
 `;
@@ -792,11 +703,12 @@ void main() {
 `;
 
 export const FRAGMENTS: Record<string, string> = {
+  textured: COMMON + TEXTURED,
   rocky: COMMON + ROCKY,
-  asteroid: COMMON + ASTEROID,
-  earth: COMMON + EARTH,
+  asteroid: COMMON + ASTEROID3D,
+  earth: COMMON + EARTH_REAL,
   gas: COMMON + GAS,
-  star: COMMON + STAR,
+  star: COMMON + STAR_REAL,
   neutron: COMMON + NEUTRON,
   blackhole: COMMON + BLACKHOLE,
   orbit: COMMON + ORBIT,

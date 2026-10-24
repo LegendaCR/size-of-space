@@ -5,6 +5,7 @@
 
 export type Kind =
   | 'asteroid'
+  | 'textured'
   | 'rocky'
   | 'earth'
   | 'gas'
@@ -50,6 +51,8 @@ export interface Look {
   /** how far the drawing extends beyond the body, in radii */
   ext?: number;
   seed?: number;
+  /** texture files in public/textures (name without .jpg) */
+  tex?: string[];
 }
 
 export interface L10n {
@@ -105,7 +108,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'halley', d: 11 * KM, kind: 'asteroid', cat: 'comet', dist: 35 * AU, wiki: 'Halley%27s_Comet',
-    look: { c: ['#211f1e', '#4b4640', '#837b70', '#cfe0ff'], p: [0.2, 0.8, 0.4, 1], seed: 41, ext: 1.8 },
+    look: { c: ['#211f1e', '#4b4640', '#837b70', '#cfe0ff'], p: [0.25, 0.8, 0.8, 1], seed: 41, ext: 1.8 },
     name: { en: 'Halley\'s Comet', ru: 'Комета Галлея' },
     fact: {
       en: 'Visible from Earth every 75–76 years. Its icy nucleus is darker than coal; next return: 2061.',
@@ -158,8 +161,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'enceladus', d: 504 * KM, kind: 'rocky', cat: 'moon', dist: 9.5 * AU, wiki: 'Enceladus',
-    look: { c: ['#c9d6dd', '#f2f7fa', '#9fc3d6'], p: [0.25, 3, 0, 0.6], ext: 1.05 },
+    id: 'enceladus', d: 504 * KM, kind: 'textured', cat: 'moon', dist: 9.5 * AU, wiki: 'Enceladus',
+    look: { c: ['#ffffff', '#cfe6ff', '#ffffff'], p: [0.6, 0.6, 0, 0], q: [0.03, 0, 0, 0], tex: ['enceladus'] },
     name: { en: 'Enceladus', ru: 'Энцелад' },
     fact: {
       en: 'The most reflective body in the Solar System. Geysers at its south pole spray water from a hidden ocean into space.',
@@ -167,8 +170,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'vesta', d: 525 * KM, kind: 'rocky', cat: 'asteroid', dist: 2.4 * AU, wiki: '4_Vesta',
-    look: { c: ['#5e564d', '#9b9285', '#c2b8a8'], p: [0.8, 2, 0, 0] },
+    id: 'vesta', d: 525 * KM, kind: 'textured', cat: 'asteroid', dist: 2.4 * AU, wiki: '4_Vesta',
+    look: { c: ['#d2c8bb', '#ffffff', '#ffffff'], p: [1.2, 0.8, 0, 0], q: [0.04, 0, 0, 0], tex: ['vesta'] },
     name: { en: 'Vesta', ru: 'Веста' },
     fact: {
       en: 'The brightest asteroid seen from Earth. A huge crater at its south pole has a central peak twice as tall as Everest.',
@@ -185,8 +188,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'charon', d: 1212 * KM, kind: 'rocky', cat: 'moon', dist: 34 * AU, wiki: 'Charon_(moon)',
-    look: { c: ['#6a625c', '#a49a92', '#7a3f32'], p: [0.5, 2, 0.7, 0] },
+    id: 'charon', d: 1212 * KM, kind: 'textured', cat: 'moon', dist: 34 * AU, wiki: 'Charon_(moon)',
+    look: { c: ['#dcd2ca', '#ffffff', '#ffffff'], p: [0.8, 0.8, 0, 0], q: [0.02, 0, 0, 0], tex: ['charon'] },
     name: { en: 'Charon', ru: 'Харон' },
     fact: {
       en: 'Pluto\'s moon is so large that the two orbit a point in empty space between them. Its north pole is stained red.',
@@ -194,8 +197,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'pluto', d: 2377 * KM, kind: 'rocky', cat: 'dwarf', dist: 34 * AU, wiki: 'Pluto',
-    look: { c: ['#8a5d40', '#d9c2a5', '#f4ebe0'], p: [0.15, 1.6, 0, 0], q: [0.7, 0, 0, 0] },
+    id: 'pluto', d: 2377 * KM, kind: 'textured', cat: 'dwarf', dist: 34 * AU, wiki: 'Pluto',
+    look: { c: ['#ffffff', '#8fb0ff', '#ffffff'], p: [0.5, 0.5, 0.35, 0], q: [0.02, 0, 0, 0], ext: 1.04, tex: ['pluto'] },
     name: { en: 'Pluto', ru: 'Плутон' },
     fact: {
       en: 'Home to a heart-shaped plain of nitrogen ice. A year on Pluto lasts 248 Earth years.',
@@ -203,8 +206,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'europa', d: 3122 * KM, kind: 'rocky', cat: 'moon', dist: 5.2 * AU, wiki: 'Europa_(moon)',
-    look: { c: ['#b9a891', '#efe6d8', '#8a5a3a'], p: [0.05, 1.5, 0, 1] },
+    id: 'europa', d: 3122 * KM, kind: 'textured', cat: 'moon', dist: 5.2 * AU, wiki: 'Europa_(moon)',
+    look: { c: ['#eadfcd', '#ffffff', '#ffffff'], p: [0.6, 0.5, 0, 0], q: [0.025, 0, 0, 0], tex: ['europa'] },
     name: { en: 'Europa', ru: 'Европа' },
     fact: {
       en: 'Beneath its cracked ice shell lies an ocean with about twice as much water as all of Earth\'s oceans.',
@@ -212,8 +215,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'moon', d: 3474 * KM, kind: 'rocky', cat: 'moon', dist: 384400 * KM, wiki: 'Moon',
-    look: { c: ['#55534f', '#a9a7a2', '#d6d4ce'], p: [1, 1.8, 0, 0], q: [0, 1, 0, 0] },
+    id: 'moon', d: 3474 * KM, kind: 'textured', cat: 'moon', dist: 384400 * KM, wiki: 'Moon',
+    look: { c: ['#ffffff', '#ffffff', '#ffffff'], p: [1.0, 1.0, 0, 0], q: [0.004, 0, 0, 0], seed: 0.0001, tex: ['moon'] },
     name: { en: 'The Moon', ru: 'Луна' },
     fact: {
       en: 'Drifting away from Earth by 3.8 cm per year. Twelve people have walked on it, the last in 1972.',
@@ -221,8 +224,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'io', d: 3643 * KM, kind: 'rocky', cat: 'moon', dist: 5.2 * AU, wiki: 'Io_(moon)',
-    look: { c: ['#c9a83a', '#efe08a', '#8a3a18', '#ffffff'], p: [0.0, 2.2, 0, 0], q: [0, 0, 1, 0] },
+    id: 'io', d: 3643 * KM, kind: 'textured', cat: 'moon', dist: 5.2 * AU, wiki: 'Io_(moon)',
+    look: { c: ['#ffffff', '#ffffff', '#ffffff'], p: [0.5, 0.6, 0, 0], q: [0.03, 0, 0, 0], tex: ['io'] },
     name: { en: 'Io', ru: 'Ио' },
     fact: {
       en: 'The most volcanically active world we know, with over 400 active volcanoes heated by Jupiter\'s tides.',
@@ -230,8 +233,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'mercury', d: 4879 * KM, kind: 'rocky', cat: 'planet', dist: 1 * AU, wiki: 'Mercury_(planet)',
-    look: { c: ['#4f4a45', '#8f8880', '#b8b0a6'], p: [1, 2.2, 0, 0] },
+    id: 'mercury', d: 4879 * KM, kind: 'textured', cat: 'planet', dist: 1 * AU, wiki: 'Mercury_(planet)',
+    look: { c: ['#ffffff', '#ffffff', '#ffffff'], p: [1.0, 1.0, 0, 0], q: [0.02, 0, 0, 0], tex: ['mercury'] },
     name: { en: 'Mercury', ru: 'Меркурий' },
     fact: {
       en: 'The smallest planet. Days reach 430 °C and nights drop to −180 °C, yet there is water ice in its polar craters.',
@@ -257,8 +260,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'mars', d: 6779 * KM, kind: 'rocky', cat: 'planet', dist: 1.5 * AU, wiki: 'Mars',
-    look: { c: ['#7a3420', '#c1643a', '#e0a070', '#ffffff'], p: [0.25, 1.6, 1, 0], ext: 1.06 },
+    id: 'mars', d: 6779 * KM, kind: 'textured', cat: 'planet', dist: 1.5 * AU, wiki: 'Mars',
+    look: { c: ['#ffffff', '#e8a878', '#ffffff'], p: [0.8, 0.4, 0.5, 0], q: [0.04, 0, 0, 0], ext: 1.04, tex: ['mars'] },
     name: { en: 'Mars', ru: 'Марс' },
     fact: {
       en: 'Home to Olympus Mons, a volcano nearly three times taller than Everest. Rovers have been driving there since 1997.',
@@ -267,7 +270,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'siriusb', d: 11700 * KM, kind: 'star', cat: 'remnant', dist: 8.6 * LY, wiki: 'Sirius',
-    look: { c: ['#dfe9ff', '#ffffff', '#9ec2ff'], p: [0.2, 0, 0, 0], ext: 2.2 },
+    look: { c: ['#dfe9ff', '#ffffff', '#9ec2ff'], p: [0.2, 0, 0, 0], ext: 2.2, tex: ['sun'] },
     name: { en: 'Sirius B', ru: 'Сириус B' },
     fact: {
       en: 'A white dwarf: the leftover core of a dead star. It has the Sun\'s mass packed into a ball the size of Earth.',
@@ -275,8 +278,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'venus', d: 12104 * KM, kind: 'gas', cat: 'planet', dist: 0.7 * AU, wiki: 'Venus',
-    look: { c: ['#d9b779', '#f0dcae', '#c49a5a', '#f5e3b8'], p: [2, 0.25, 0, 0], q: [0.5, 0, 0, 0], ext: 1.08 },
+    id: 'venus', d: 12104 * KM, kind: 'textured', cat: 'planet', dist: 0.7 * AU, wiki: 'Venus',
+    look: { c: ['#ffffff', '#f3d9a8', '#ffffff'], p: [0, 0, 0.8, 0], q: [0.015, 0, 0, 0.3], ext: 1.05, tex: ['venus_atmosphere'] },
     name: { en: 'Venus', ru: 'Венера' },
     fact: {
       en: 'The hottest planet (465 °C), wrapped in sulfuric acid clouds. A day on Venus is longer than its year.',
@@ -285,7 +288,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'earth', d: 12742 * KM, kind: 'earth', cat: 'planet', dist: 0, wiki: 'Earth',
-    look: { c: ['#0b2a5c', '#2f7a3a', '#c9b98a', '#ffffff'], ext: 1.08 },
+    look: { c: ['#0b2a5c', '#2f7a3a', '#c9b98a', '#ffffff'], ext: 1.06, tex: ['earth_day', 'earth_nightmap', 'earth_clouds', 'earth_spec'] },
     name: { en: 'Earth', ru: 'Земля' },
     fact: {
       en: 'The only place known to harbour life. 71% of its surface is covered in water. You are here.',
@@ -293,8 +296,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'neptune', d: 49244 * KM, kind: 'gas', cat: 'planet', dist: 30 * AU, wiki: 'Neptune',
-    look: { c: ['#2a4ab8', '#4a78e0', '#8ab0ff', '#ffffff'], p: [5, 0.5, 0.6, 0], q: [0.5, 0.2, 0, 0], ext: 1.08 },
+    id: 'neptune', d: 49244 * KM, kind: 'textured', cat: 'planet', dist: 30 * AU, wiki: 'Neptune',
+    look: { c: ['#ffffff', '#6a9aff', '#ffffff'], p: [0, 0, 0.6, 0], q: [0.06, 0, 0, 0.4], ext: 1.05, tex: ['neptune'] },
     name: { en: 'Neptune', ru: 'Нептун' },
     fact: {
       en: 'The windiest planet: storms reach 2,100 km/h. It was found by mathematics before anyone saw it through a telescope.',
@@ -302,8 +305,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'uranus', d: 50724 * KM, kind: 'gas', cat: 'planet', dist: 19 * AU, wiki: 'Uranus',
-    look: { c: ['#8fd3db', '#b5e6ea', '#7cc0cc', '#d8f4f6'], p: [3, 0.06, 0, 0.3], q: [0.4, 0, 0, 1.45], ext: 1.9 },
+    id: 'uranus', d: 50724 * KM, kind: 'textured', cat: 'planet', dist: 19 * AU, wiki: 'Uranus',
+    look: { c: ['#ffffff', '#b8f0f4', '#c8d0d6'], p: [0, 0, 0.5, 2], q: [0.05, 0.9, 0.45, 0.4], ext: 2.15, tex: ['uranus'] },
     name: { en: 'Uranus', ru: 'Уран' },
     fact: {
       en: 'Rolls around the Sun on its side, tilted 98°. Each pole gets 42 years of sunlight followed by 42 years of darkness.',
@@ -311,8 +314,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'saturn', d: 116460 * KM, kind: 'gas', cat: 'planet', dist: 9.5 * AU, wiki: 'Saturn',
-    look: { c: ['#c7a76a', '#e8d4a2', '#a8844a', '#f2e6c4'], p: [9, 0.25, 0, 1], q: [0.3, 0, 0, 0], ext: 2.4 },
+    id: 'saturn', d: 116460 * KM, kind: 'textured', cat: 'planet', dist: 9.5 * AU, wiki: 'Saturn',
+    look: { c: ['#ffffff', '#f2e6c4', '#ffffff'], p: [0, 0, 0.3, 1], q: [0.08, 0.32, -0.12, 0.45], ext: 2.35, tex: ['saturn', 'saturn_ring.png'] },
     name: { en: 'Saturn', ru: 'Сатурн' },
     fact: {
       en: 'Its rings span 280,000 km but are mostly only about 10 m thick. Saturn is less dense than water.',
@@ -320,8 +323,8 @@ export const OBJECTS: SpaceObject[] = [
     },
   },
   {
-    id: 'jupiter', d: 139820 * KM, kind: 'gas', cat: 'planet', dist: 5.2 * AU, wiki: 'Jupiter',
-    look: { c: ['#b07a50', '#ead8bc', '#8a5a3a', '#f5ece0'], p: [12, 0.6, 1, 0], q: [0.2, 0, 0, 0], ext: 1.04 },
+    id: 'jupiter', d: 139820 * KM, kind: 'textured', cat: 'planet', dist: 5.2 * AU, wiki: 'Jupiter',
+    look: { c: ['#ffffff', '#f5ece0', '#ffffff'], p: [0, 0, 0.35, 0], q: [0.08, 0, 0, 0.45], ext: 1.04, tex: ['jupiter'] },
     name: { en: 'Jupiter', ru: 'Юпитер' },
     fact: {
       en: 'More than twice as massive as all other planets combined. The Great Red Spot is a storm wider than Earth.',
@@ -330,7 +333,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'trappist1', d: sunD(0.119), kind: 'star', cat: 'star', dist: 40.7 * LY, wiki: 'TRAPPIST-1',
-    look: { c: ['#ff5a2a', '#ffb070', '#ff2a10'], p: [0.6, 0.4, 0, 0], ext: 1.9 },
+    look: { c: ['#ff5a2a', '#ffb070', '#ff2a10'], p: [0.6, 0.4, 0, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'TRAPPIST-1', ru: 'TRAPPIST-1' },
     fact: {
       en: 'An ultra-cool red dwarf barely bigger than Jupiter, orbited by seven Earth-sized planets.',
@@ -339,7 +342,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'proxima', d: sunD(0.154), kind: 'star', cat: 'star', dist: 4.24 * LY, wiki: 'Proxima_Centauri',
-    look: { c: ['#ff6a3a', '#ffc08a', '#ff3a1a'], p: [0.6, 0.6, 0, 0], ext: 1.9 },
+    look: { c: ['#ff6a3a', '#ffc08a', '#ff3a1a'], p: [0.6, 0.6, 0, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'Proxima Centauri', ru: 'Проксима Центавра' },
     fact: {
       en: 'The closest star to the Sun. Its light takes 4.24 years to reach us; Voyager 1 would need over 70,000 years.',
@@ -357,7 +360,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'sun', d: sunD(1), kind: 'star', cat: 'star', dist: 1 * AU, wiki: 'Sun',
-    look: { c: ['#ffcf5a', '#fff4d0', '#ff8a1a'], p: [1, 0.5, 0, 0], ext: 1.8 },
+    look: { c: ['#ffc24a', '#fff2c8', '#ff7a10'], p: [1, 1, 0, 0], ext: 1.8, tex: ['sun'] },
     name: { en: 'The Sun', ru: 'Солнце' },
     fact: {
       en: '99.86% of the Solar System\'s mass. About 1.3 million Earths would fit inside it.',
@@ -366,7 +369,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'sirius', d: sunD(1.711), kind: 'star', cat: 'star', dist: 8.6 * LY, wiki: 'Sirius',
-    look: { c: ['#cfe0ff', '#ffffff', '#8ab4ff'], p: [1, 0.3, 0, 0], ext: 1.9 },
+    look: { c: ['#cfe0ff', '#ffffff', '#8ab4ff'], p: [1, 0.3, 0, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'Sirius A', ru: 'Сириус A' },
     fact: {
       en: 'The brightest star in the night sky, 25 times more luminous than the Sun.',
@@ -375,7 +378,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'vega', d: sunD(2.36), kind: 'star', cat: 'star', dist: 25 * LY, wiki: 'Vega',
-    look: { c: ['#d6e4ff', '#ffffff', '#9abcff'], p: [1, 0.3, 0, 0], ext: 1.9 },
+    look: { c: ['#d6e4ff', '#ffffff', '#9abcff'], p: [1, 0.3, 0, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'Vega', ru: 'Вега' },
     fact: {
       en: 'Spins so fast it bulges at the equator. In 12,000 years it will become Earth\'s North Star.',
@@ -384,7 +387,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'pollux', d: sunD(9.06), kind: 'star', cat: 'star', dist: 34 * LY, wiki: 'Pollux_(star)',
-    look: { c: ['#ffb060', '#ffe0b0', '#ff8030'], p: [1.6, 0.6, 0, 0], ext: 1.8 },
+    look: { c: ['#ffb060', '#ffe0b0', '#ff8030'], p: [1.6, 0.6, 0, 0], ext: 1.8, tex: ['sun'] },
     name: { en: 'Pollux', ru: 'Поллукс' },
     fact: {
       en: 'The closest giant star to the Sun, and it has a confirmed planet larger than Jupiter.',
@@ -402,7 +405,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'arcturus', d: sunD(25.4), kind: 'star', cat: 'star', dist: 36.7 * LY, wiki: 'Arcturus',
-    look: { c: ['#ffa850', '#ffdcaa', '#ff7a2a'], p: [1.8, 0.6, 0, 0], ext: 1.8 },
+    look: { c: ['#ffa850', '#ffdcaa', '#ff7a2a'], p: [1.8, 0.6, 0, 0], ext: 1.8, tex: ['sun'] },
     name: { en: 'Arcturus', ru: 'Арктур' },
     fact: {
       en: 'An orange giant and the brightest star of the northern sky. It is what our Sun will look like in about 5 billion years.',
@@ -411,7 +414,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'aldebaran', d: sunD(45), kind: 'star', cat: 'star', dist: 65 * LY, wiki: 'Aldebaran',
-    look: { c: ['#ff9440', '#ffd09a', '#ff6a20'], p: [2, 0.7, 0, 0], ext: 1.8 },
+    look: { c: ['#ff9440', '#ffd09a', '#ff6a20'], p: [2, 0.7, 0, 0], ext: 1.8, tex: ['sun'] },
     name: { en: 'Aldebaran', ru: 'Альдебаран' },
     fact: {
       en: 'The fiery "eye" of Taurus. Pioneer 10 is drifting towards it and will pass nearby in about 2 million years.',
@@ -420,7 +423,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'rigel', d: sunD(79), kind: 'star', cat: 'star', dist: 860 * LY, wiki: 'Rigel',
-    look: { c: ['#bcd4ff', '#ffffff', '#6a9aff'], p: [1.4, 0.4, 0, 0], ext: 2 },
+    look: { c: ['#bcd4ff', '#ffffff', '#6a9aff'], p: [1.4, 0.4, 0, 0], ext: 2, tex: ['sun'] },
     name: { en: 'Rigel', ru: 'Ригель' },
     fact: {
       en: 'A blue supergiant in Orion, shining about 120,000 times brighter than the Sun.',
@@ -438,7 +441,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'deneb', d: sunD(203), kind: 'star', cat: 'star', dist: 2600 * LY, wiki: 'Deneb',
-    look: { c: ['#e8f0ff', '#ffffff', '#b0c8ff'], p: [1.6, 0.3, 0, 0], ext: 1.9 },
+    look: { c: ['#e8f0ff', '#ffffff', '#b0c8ff'], p: [1.6, 0.3, 0, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'Deneb', ru: 'Денеб' },
     fact: {
       en: 'One of the most luminous stars visible to the naked eye, so bright it shines across 2,600 light-years.',
@@ -456,7 +459,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'antares', d: sunD(680), kind: 'star', cat: 'star', dist: 550 * LY, wiki: 'Antares',
-    look: { c: ['#ff4a1a', '#ff9a5a', '#c01a00'], p: [3.5, 1, 0, 0], ext: 1.7 },
+    look: { c: ['#ff4a1a', '#ff9a5a', '#c01a00'], p: [3.5, 1, 0, 0], ext: 1.7, tex: ['sun'] },
     name: { en: 'Antares', ru: 'Антарес' },
     fact: {
       en: 'The red heart of Scorpius. Placed where the Sun is, it would swallow Mars\'s orbit.',
@@ -465,7 +468,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'betelgeuse', d: sunD(764), kind: 'star', cat: 'star', dist: 550 * LY, wiki: 'Betelgeuse',
-    look: { c: ['#ff5a20', '#ffa060', '#c02000'], p: [4, 1, 0, 0], ext: 1.7 },
+    look: { c: ['#ff5a20', '#ffa060', '#c02000'], p: [4, 1, 0, 0], ext: 1.7, tex: ['sun'] },
     name: { en: 'Betelgeuse', ru: 'Бетельгейзе' },
     fact: {
       en: 'Orion\'s shoulder is near the end of its life. When it goes supernova it will be visible in daylight for weeks.',
@@ -474,7 +477,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'uyscuti', d: sunD(909), kind: 'star', cat: 'star', dist: 5900 * LY, wiki: 'UY_Scuti',
-    look: { c: ['#ff6a2a', '#ffb070', '#b02a00'], p: [4.5, 1, 0, 0], ext: 1.7 },
+    look: { c: ['#ff6a2a', '#ffb070', '#b02a00'], p: [4.5, 1, 0, 0], ext: 1.7, tex: ['sun'] },
     name: { en: 'UY Scuti', ru: 'UY Щита' },
     fact: {
       en: 'Once called the largest known star. Light would need almost 1.5 hours to circle its surface.',
@@ -492,7 +495,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'vycma', d: sunD(1420), kind: 'star', cat: 'star', dist: 3900 * LY, wiki: 'VY_Canis_Majoris',
-    look: { c: ['#ff4a1a', '#ff9050', '#a01800'], p: [5, 1.2, 1, 0], ext: 1.9 },
+    look: { c: ['#ff4a1a', '#ff9050', '#a01800'], p: [5, 1.2, 1, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'VY Canis Majoris', ru: 'VY Большого Пса' },
     fact: {
       en: 'A hypergiant shedding its outer layers into a vast dusty cloud. Billions of Suns could fit inside.',
@@ -501,7 +504,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'stephenson218', d: sunD(2150), kind: 'star', cat: 'star', dist: 19000 * LY, wiki: 'Stephenson_2-18',
-    look: { c: ['#ff3a10', '#ff8040', '#900800'], p: [5.5, 1.2, 1, 0], ext: 1.9 },
+    look: { c: ['#ff3a10', '#ff8040', '#900800'], p: [5.5, 1.2, 1, 0], ext: 1.9, tex: ['sun'] },
     name: { en: 'Stephenson 2-18', ru: 'Стивенсон 2-18' },
     fact: {
       en: 'One of the largest known stars (the estimate is uncertain). At the Sun\'s place it would reach beyond Saturn\'s orbit.',
@@ -519,7 +522,7 @@ export const OBJECTS: SpaceObject[] = [
   },
   {
     id: 'heliosphere', d: 2 * 120 * AU, kind: 'bubble', cat: 'system', dist: null, wiki: 'Heliosphere',
-    look: { c: ['#3a6aff', '#8ab0ff', '#ffcf5a'], ext: 1.6 },
+    look: { c: ['#3a6aff', '#8ab0ff', '#ffcf5a'], ext: 1.95 },
     name: { en: 'Heliosphere', ru: 'Гелиосфера' },
     fact: {
       en: 'The bubble blown by the solar wind. Voyager 1 crossed its edge in 2012, becoming the first object to reach interstellar space.',

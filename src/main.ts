@@ -6,10 +6,16 @@ import { formatAlt, formatLength, formatRatio, scaleBar } from './format';
 import { Ambient } from './audio';
 
 const N = OBJECTS.length;
+const SSS = new Set(['sun', 'mercury', 'venus_atmosphere', 'earth_day', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']);
+const textureCredit = (tex?: string[]) => {
+  if (!tex?.length) return '';
+  return SSS.has(tex[0]) ? 'Texture: Solar System Scope (CC BY 4.0)' : 'Texture: NASA / JPL / USGS (public domain)';
+};
 const EARTH = OBJECTS.find((o) => o.id === 'earth')!;
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const canvas = $<HTMLCanvasElement>('gl');
+if (new URLSearchParams(location.search).has('clean')) document.body.classList.add('clean');
 let universe: Universe;
 try {
   universe = new Universe(canvas);
@@ -112,6 +118,7 @@ function openPanel(i: number) {
   $('p-ratio').textContent = i > 0 ? S.prevRatio(formatRatio(o.d / OBJECTS[i - 1].d, lang), OBJECTS[i - 1].name[lang]) : '';
   $('p-fact').textContent = o.fact[lang];
   $<HTMLAnchorElement>('p-wiki').href = `https://en.wikipedia.org/wiki/${o.wiki}`;
+  $('p-credits').textContent = textureCredit(o.look.tex);
   panel.classList.add('open');
   panel.setAttribute('aria-hidden', 'false');
 }
@@ -142,10 +149,31 @@ $('btn-lang').addEventListener('click', () => {
 });
 applyLang();
 
-$('btn-sound').addEventListener('click', () => {
+// Music starts with the first click/tap/key press (browsers block autoplay),
+// unless the visitor switched it off before.
+const soundBtn = $('btn-sound');
+let soundPref = 'on';
+try { soundPref = localStorage.getItem('sos-sound') ?? 'on'; } catch { /* ignore */ }
+const syncSound = () => {
+  soundBtn.setAttribute('aria-pressed', String(ambient.on));
+  soundBtn.classList.toggle('waiting', !ambient.started && soundPref !== 'off');
+};
+soundBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
   const on = ambient.toggle();
-  $('btn-sound').setAttribute('aria-pressed', String(on));
+  soundPref = on ? 'on' : 'off';
+  try { localStorage.setItem('sos-sound', soundPref); } catch { /* ignore */ }
+  syncSound();
 });
+const firstGesture = () => {
+  if (soundPref !== 'off' && !ambient.started) ambient.start();
+  syncSound();
+  window.removeEventListener('pointerdown', firstGesture, true);
+  window.removeEventListener('keydown', firstGesture, true);
+};
+window.addEventListener('pointerdown', firstGesture, true);
+window.addEventListener('keydown', firstGesture, true);
+syncSound();
 $('btn-prev').addEventListener('click', () => go(Math.round(target) - 1));
 $('btn-next').addEventListener('click', () => go(Math.round(target) + 1));
 $('btn-restart').addEventListener('click', () => go(0));
@@ -221,7 +249,9 @@ function frame(now: number) {
     const snap = Math.round(target);
     target += (snap - target) * Math.min(1, dt * 5);
   }
+  const before = progress;
   progress += (target - progress) * Math.min(1, dt * 5.5);
+  ambient.nudge(Math.abs(progress - before) * 0.5);
   if (Math.abs(target - progress) < 1e-4) progress = target;
 
   placed = universe.render(progress, (now - t0) / 1000);
@@ -280,3 +310,4 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+setTimeout(() => universe.preload(), 1200);

@@ -17,7 +17,8 @@ npm run build      # production build into dist/
 2. Add an entry **in size order**: the list must go strictly from smallest to largest diameter.
 3. Fill in:
    - `d`: diameter in metres (use the `KM`, `AU`, `LY` and `sunD()` helpers),
-   - `kind`: which shader draws it (see the `Kind` type),
+   - `kind`: which shader draws it (see the `Kind` type); use `textured` for planets and moons with a surface map,
+   - `tex`: texture file names in `public/textures/` (public-domain or openly licensed maps only, credited in the README),
    - `cat`: the category shown in the info panel,
    - `look`: palette `c` and kind-specific parameters `p` / `q` (copy a similar object and tweak),
    - `name` and `fact` in **both English and Russian**,
@@ -29,7 +30,7 @@ Please cite a reliable source for new sizes in your PR description.
 
 ## Improving visuals
 
-Each `kind` has its own fragment shader in [`src/render/shaders.ts`](src/render/shaders.ts). Inside it, `vP` is the pixel's position in units of the object's radius (the edge is at `r = 1`), and `uPx` is the radius in device pixels, which is handy for anti-aliasing and level of detail.
+Each `kind` has its own fragment shader in [`src/render/shaders.ts`](src/render/shaders.ts) or [`src/render/realistic.ts`](src/render/realistic.ts). Inside it, `vP` is the pixel's position in units of the object's radius (the edge is at `r = 1`), and `uPx` is the radius in device pixels, which is handy for anti-aliasing and level of detail.
 
 ## Translations
 

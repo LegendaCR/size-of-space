@@ -315,3 +315,13 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .hint .arrow { animation: none; }
 }
+
+#btn-sound.waiting { animation: callout 2.4s ease-in-out infinite; }
+@keyframes callout {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(157, 180, 255, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(157, 180, 255, 0.22); }
+}
+
+body.clean .top, body.clean .bottom, body.clean .intro, body.clean .hint, body.clean .outro, body.clean #labels { display: none !important; }
+.panel .credits { margin: 14px 0 0; font-size: 11px; color: rgba(220, 228, 255, 0.4); line-height: 1.4; }
+.panel .credits:empty { display: none; }
