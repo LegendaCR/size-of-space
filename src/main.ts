@@ -360,8 +360,14 @@ function compareFrame(now: number, dt: number) {
     const dx = universe.width / 2 + res.small.x, dy = universe.height / 2 + res.small.y;
     cmpInset.hidden = leader.hidden = dot.hidden = false;
     cmpInset.style.cssText = `width:${s}px;height:${s}px;left:${ix - s / 2}px;top:${iy - s / 2}px`;
-    leader.style.cssText = `left:${dx}px;top:${iy + s / 2}px;height:${Math.max(0, dy - 8 - (iy + s / 2))}px`;
-    dot.style.cssText = `left:${dx}px;top:${dy}px`;
+    // The marker follows the true size: a ring around a visible object,
+    // collapsing to a single bright point when it is smaller than a couple of pixels.
+    const r = res.small.r;
+    const point = r < 1.5;
+    const md = point ? 3 : 2 * r + 8;
+    dot.classList.toggle('point', point);
+    dot.style.cssText = `left:${dx}px;top:${dy}px;width:${md}px;height:${md}px;margin:${-md / 2}px 0 0 ${-md / 2}px`;
+    leader.style.cssText = `left:${dx}px;top:${iy + s / 2}px;height:${Math.max(0, dy - md / 2 - 3 - (iy + s / 2))}px`;
     $('cmp-zoom').textContent = S.cmpZoom(formatRatio(res.inset.zoom, lang));
   } else cmpInset.hidden = leader.hidden = dot.hidden = true;
   ambient.setDepth(Math.max(a, b) / (N - 1));

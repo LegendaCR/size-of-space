@@ -396,4 +396,5 @@ body.comparing #btn-compare { border-color: rgba(157, 180, 255, 0.55); backgroun
   .cmp-bar select { width: auto; flex: 1 1 calc(100% - 54px); }
 }
 .cmp-leader { position: absolute; width: 1px; background: linear-gradient(rgba(157, 180, 255, 0.5), rgba(157, 180, 255, 0.1)); }
-.cmp-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 1px solid rgba(157, 180, 255, 0.7); }
+.cmp-dot { position: absolute; border-radius: 50%; border: 1px solid rgba(157, 180, 255, 0.7); }
+.cmp-dot.point { border: 0; background: #fff; box-shadow: 0 0 4px 1px rgba(200, 215, 255, 0.9); }
