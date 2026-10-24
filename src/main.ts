@@ -340,6 +340,14 @@ window.addEventListener('hashchange', () => {
 
 // ---------- loop ----------
 const intro = $('intro'), hint = $('hint'), outro = $('outro');
+// Deep links skip the intro fade: hide it instantly, then restore transitions.
+if (target > 0.35) {
+  for (const el of [intro, hint]) {
+    el.style.transition = 'none';
+    el.classList.add('hide');
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => { intro.style.transition = hint.style.transition = ''; }));
+}
 const thumb = $('thumb'), fill = $('track-fill'), counter = $('counter');
 const bar = $('scale-bar'), barLabel = $('scale-label');
 let last = performance.now();
