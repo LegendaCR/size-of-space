@@ -37,7 +37,16 @@ export function formatAlt(m: number, lang: Lang, s: Strings) {
   return null;
 }
 
+const BIG: Record<Lang, [number, string][]> = {
+  en: [[1e12, 'trillion'], [1e9, 'billion'], [1e6, 'million']],
+  ru: [[1e12, 'трлн'], [1e9, 'млрд'], [1e6, 'млн']],
+};
+
 export function formatRatio(x: number, lang: Lang) {
+  if (x >= 1e6 && x < 1e15) {
+    const [v, w] = BIG[lang].find(([v]) => x >= v)!;
+    return `${num(x / v, lang, 2)} ${w}`;
+  }
   if (x >= 1e6) {
     const e = Math.floor(Math.log10(x));
     const m = x / 10 ** e;

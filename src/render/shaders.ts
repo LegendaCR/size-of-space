@@ -479,7 +479,7 @@ void main() {
     dens = clamp(d * 1.05 + smoothstep(1.15, 0.85, r) * 0.2, 0.0, 1.0);
     addStars = false;
   } else {
-    float ell = length(p * vec2(0.8, 1.1));
+    float ell = length(p * vec2(1.0, 1.35));
     float mask = smoothstep(1.0, 0.65, ell + (w - 0.5) * 0.3);
     float fil = 1.0 - abs(fbm(pp * 2.5 + warp * 2.0) * 2.0 - 1.0);
     fil = pow(fil, 6.0);
@@ -496,7 +496,7 @@ void main() {
     float s = stars(p, 45.0, 0.12) + stars(p, 120.0, 0.1) * 0.8;
     o = over(vec4(mix(uC4, vec3(1.0), 0.6), clamp(s, 0.0, 1.0) * smoothstep(1.0, 0.8, r)), o);
   }
-  gl_FragColor = vec4(o.rgb, o.a * uAlpha);
+  gl_FragColor = vec4(o.rgb, o.a * uAlpha * smoothstep(uExt, uExt * 0.86, max(abs(p.x), abs(p.y))));
 }
 `;
 

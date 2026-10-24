@@ -26,6 +26,10 @@
         <span data-i18n="title"></span>
       </a>
       <div class="actions">
+        <button id="btn-compare" class="icon-btn wide" title="Compare">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="14" r="3.2" /><circle cx="16" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+          <span data-i18n="compare"></span>
+        </button>
         <button id="btn-sound" class="icon-btn" aria-pressed="false" title="Sound">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" /></svg>
         </button>
@@ -49,6 +53,22 @@
         <button id="btn-restart" class="pill" data-i18n="restart"></button>
         <a class="pill primary" href="https://github.com/LegendaCR/size-of-space" target="_blank" rel="noopener">★ <span data-i18n="star"></span></a>
       </div>
+    </section>
+
+    <section id="compare" class="compare" hidden>
+      <div class="cmp-bar">
+        <select id="cmp-a" aria-label="First object"></select>
+        <button id="cmp-swap" class="icon-btn" aria-label="Swap">⇄</button>
+        <select id="cmp-b" aria-label="Second object"></select>
+        <button id="cmp-close" class="icon-btn" aria-label="Close">×</button>
+      </div>
+      <div class="cmp-info">
+        <p class="cmp-main" id="cmp-main"></p>
+        <p class="cmp-sub" id="cmp-sub"></p>
+      </div>
+      <div class="cmp-inset" id="cmp-inset" hidden><span id="cmp-zoom"></span></div>
+      <div class="cmp-leader" id="cmp-leader" hidden></div>
+      <div class="cmp-dot" id="cmp-dot" hidden></div>
     </section>
 
     <aside id="panel" class="panel" aria-hidden="true">

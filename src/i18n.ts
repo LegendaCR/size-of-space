@@ -2,6 +2,15 @@ import type { Category } from './data/objects';
 
 export type Lang = 'en' | 'ru';
 
+/** "раз" / "раза" agreement for a formatted Russian number. */
+function raz(x: string) {
+  if (/[а-я·]/.test(x)) return 'раз';
+  if (/[,.]/.test(x)) return 'раза';
+  const n = parseInt(x.replace(/\D/g, '').slice(-2), 10);
+  const d = n % 10;
+  return d >= 2 && d <= 4 && (n < 12 || n > 14) ? 'раза' : 'раз';
+}
+
 export const STRINGS = {
   en: {
     title: 'Size of Space',
@@ -11,6 +20,13 @@ export const STRINGS = {
     compared: 'Compared to Earth',
     distance: 'Distance from Earth',
     prevRatio: (x: string, name: string) => `${x}× larger than ${name}`,
+    compare: 'Compare',
+    compareTitle: 'Compare any two objects',
+    swap: 'Swap',
+    cmpWider: (big: string, x: string, small: string) => `${big} is ${x}× wider than ${small}`,
+    cmpSame: 'Pick two different objects to compare',
+    cmpVolume: (n: string, small: string) => `By volume: ≈ ${n} × ${small}`,
+    cmpZoom: (z: string) => `Magnified ×${z}`,
     youAreHere: 'You are here',
     readMore: 'Read more on Wikipedia',
     clickHint: 'Click for details',
@@ -42,7 +58,14 @@ export const STRINGS = {
     diameter: 'Диаметр',
     compared: 'В сравнении с Землёй',
     distance: 'Расстояние от Земли',
-    prevRatio: (x: string, name: string) => `В ${x} раза больше, чем ${name}`,
+    prevRatio: (x: string, name: string) => `В ${x} ${raz(x)} больше, чем ${name}`,
+    compare: 'Сравнить',
+    compareTitle: 'Сравните любые два объекта',
+    swap: 'Поменять местами',
+    cmpWider: (big: string, x: string, small: string) => `${big} больше, чем ${small}, в ${x} ${raz(x)} по диаметру`,
+    cmpSame: 'Выберите два разных объекта',
+    cmpVolume: (n: string, small: string) => `По объёму: ≈ ${n} × ${small}`,
+    cmpZoom: (z: string) => `Увеличено ×${z}`,
     youAreHere: 'Вы здесь',
     readMore: 'Подробнее в Википедии (англ.)',
     clickHint: 'Нажмите, чтобы узнать больше',

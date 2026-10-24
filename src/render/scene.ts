@@ -216,41 +216,101 @@ export class Universe {
       const ext = this.ext(o);
       const half = r * ext;
       const onScreen = x + half > -this.width / 2 && x - half < this.width / 2 && r > 0.35 && r < this.width * 60;
-      let m = this.meshes[i];
       if (!onScreen) {
-        if (m) m.visible = false;
+        if (this.meshes[i]) this.meshes[i]!.visible = false;
         continue;
       }
-      if (!m) {
-        m = new THREE.Mesh(this.plane, this.material(o));
-        m.frustumCulled = false;
-        m.renderOrder = OBJECTS.length - i;
-        this.scene.add(m);
-        this.meshes[i] = m;
-      }
-      m.visible = true;
-      m.position.set(x, yOff, 0);
-      m.scale.set(half * 2, half * 2, 1);
-      const u = m.material.uniforms;
-      u.uTime.value = time;
-      u.uPx.value = r * dpr;
-      u.uAlpha.value = Math.min(1, r / 1.5);
-      const at = m.material.userData.loadedAt as number | undefined;
-      if (at !== undefined) u.uLoaded.value = Math.min(1, (performance.now() - at) / 500);
+      this.place(i, x, yOff, r, time);
       placed.push({ index: i, x, y: -yOff, r, ext });
     }
 
+    this.background(Math.log10(2 * (this.focusRadius(progress) / k)), progress, time);
+    this.renderer.render(this.scene, this.camera);
+    return placed;
+  }
+
+  /** Show object i centred at (x, y) (three.js coordinates, y up) with radius r px. */
+  private place(i: number, x: number, y: number, r: number, time: number) {
+    const o = OBJECTS[i];
+    let m = this.meshes[i];
+    if (!m) {
+      m = new THREE.Mesh(this.plane, this.material(o));
+      m.frustumCulled = false;
+      m.renderOrder = OBJECTS.length - i;
+      this.scene.add(m);
+      this.meshes[i] = m;
+    }
+    const half = r * this.ext(o);
+    m.visible = true;
+    m.position.set(x, y, 0);
+    m.scale.set(half * 2, half * 2, 1);
+    const u = m.material.uniforms;
+    u.uTime.value = time;
+    u.uPx.value = r * this.renderer.getPixelRatio();
+    u.uAlpha.value = Math.min(1, r / 1.5);
+    const at = m.material.userData.loadedAt as number | undefined;
+    if (at !== undefined) u.uLoaded.value = Math.min(1, (performance.now() - at) / 500);
+    return m;
+  }
+
+  private background(logd: number, pan: number, time: number) {
     const bu = this.bg.material.uniforms;
-    const logd = Math.log10(2 * (this.focusRadius(progress) / k));
     const t = tintAt(logd);
     bu.uZoom.value = logd;
-    bu.uPan.value = progress;
+    bu.uPan.value = pan;
     bu.uTime.value = time;
     bu.uTint.value.copy(t.tint);
     bu.uHaze1.value.copy(t.h1);
     bu.uHaze2.value.copy(t.h2);
+  }
 
+  /**
+   * Side-by-side comparison: the smaller object on the left at true scale
+   * (`ratio` = small / big diameter, animated by the caller), the larger on the right.
+   * When the small one is too tiny to see, it is also drawn magnified in an inset.
+   */
+  renderCompare(a: number, b: number, ratio: number, time: number) {
+    const [si, bi] = OBJECTS[a].d <= OBJECTS[b].d ? [a, b] : [b, a];
+    this.meshes.forEach((m) => m && (m.visible = false));
+    const w = this.width, h = this.height;
+    const mobile = w < 700;
+    const R = Math.min(w * (mobile ? 0.3 : 0.24), h * 0.27);
+    const r = R * ratio;
+    const needInset = si !== bi && r < 14;
+    const size = Math.round(Math.min(mobile ? 140 : 200, h * 0.24, R * 1.1));
+    const gap = Math.max(36, R * 0.25 + 18, needInset ? size / 2 + 28 : 0);
+    const total = 2 * r + gap + 2 * R;
+    const left = -total / 2;
+    const yOff = h * 0.02;
+    const xs = left + r, xb = left + 2 * r + gap + R;
+
+    this.place(bi, xb, yOff, R, time);
+    if (si !== bi && r > 0.35) this.place(si, xs, yOff, r, time);
+    this.background(Math.log10(OBJECTS[bi].d), bi, time);
     this.renderer.render(this.scene, this.camera);
-    return placed;
+
+    const small = { index: si, x: xs, y: -yOff, r, ext: this.ext(OBJECTS[si]) };
+    const big = { index: bi, x: xb, y: -yOff, r: R, ext: this.ext(OBJECTS[bi]) };
+    let inset: { x: number; y: number; size: number; zoom: number } | null = null;
+
+    if (needInset) {
+      // A magnifier floating above the tiny object's true position.
+      const cx = Math.max(xs, -w / 2 + 12 + size / 2);
+      const cy = yOff + 40 + size / 2;
+      const ir = (size * 0.36) / Math.min(this.ext(OBJECTS[si]), 1.6);
+      this.meshes[bi]!.visible = false;
+      this.place(si, cx, cy, ir, time);
+      const rd = this.renderer;
+      rd.autoClear = false;
+      rd.setScissorTest(true);
+      rd.setScissor(w / 2 + cx - size / 2, h / 2 + cy - size / 2, size, size);
+      rd.clear();
+      rd.render(this.scene, this.camera);
+      rd.setScissorTest(false);
+      rd.autoClear = true;
+      this.meshes[bi]!.visible = true;
+      inset = { x: cx, y: -cy, size, zoom: ir / Math.max(r, 1e-300) };
+    }
+    return { small, big, inset };
   }
 }
