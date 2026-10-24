@@ -428,3 +428,4 @@ body.comparing #btn-compare { border-color: rgba(157, 180, 255, 0.55); backgroun
 .scale [data-tip]:hover::after { left: 0; transform: none; }
 .scale span { pointer-events: auto; align-self: flex-start; }
 .panel dd [data-tip]:hover::after, .panel dd[data-tip]:hover::after { left: 0; transform: none; }
+body.shot .top, body.shot .cmp-bar, body.shot .bottom, body.shot .intro, body.shot .hint, body.shot .outro { display: none !important; }

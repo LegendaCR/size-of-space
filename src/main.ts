@@ -16,6 +16,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 const canvas = $<HTMLCanvasElement>('gl');
 if (new URLSearchParams(location.search).has('clean')) document.body.classList.add('clean');
+if (new URLSearchParams(location.search).has('shot')) document.body.classList.add('shot');
 let universe: Universe;
 try {
   universe = new Universe(canvas);
