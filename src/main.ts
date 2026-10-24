@@ -44,7 +44,9 @@ const compareFromHash = (): [number, number] | null => {
 };
 let cmp: { a: number; b: number } | null = null;
 let cmpLog = 0; // animated log(small / big diameter)
-let target = compareFromHash() ? 0 : fromHash();
+// `?p=12.5` pins the camera at a fractional position (used to render README frames).
+const pinned = parseFloat(new URLSearchParams(location.search).get('p') ?? '');
+let target = compareFromHash() ? 0 : Number.isFinite(pinned) ? pinned : fromHash();
 let progress = target;
 let lastInput = 0;
 let panelIndex = -1;
@@ -400,7 +402,7 @@ function frame(now: number) {
   }
 
   // Gentle snapping to the nearest object once input stops.
-  if (now - lastInput > 450 && !dragTrack && !drag) {
+  if (now - lastInput > 450 && !dragTrack && !drag && !(Number.isFinite(pinned) && lastInput === 0)) {
     const snap = Math.round(target);
     target += (snap - target) * Math.min(1, dt * 5);
   }
