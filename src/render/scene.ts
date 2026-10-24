@@ -274,14 +274,17 @@ export class Universe {
     this.meshes.forEach((m) => m && (m.visible = false));
     const w = this.width, h = this.height;
     const mobile = w < 700;
-    const R = Math.min(w * (mobile ? 0.3 : 0.24), h * 0.27);
+    // Keep everything between the selector bar (top) and the ratio text + labels (bottom).
+    const top = mobile ? 172 : 112, bottom = 160;
+    const yOff = h / 2 - (top + h - bottom) / 2;
+    const R = Math.max(24, Math.min(w * (mobile ? 0.3 : 0.24), h * 0.27, ((h - top - bottom) / 2) * 0.95));
     const r = R * ratio;
     const needInset = si !== bi && r < 14;
-    const size = Math.round(Math.min(mobile ? 140 : 200, h * 0.24, R * 1.1));
+    const dotY = h / 2 - yOff;
+    const size = Math.round(Math.max(64, Math.min(mobile ? 140 : 200, R * 1.1, dotY - top - 40)));
     const gap = Math.max(36, R * 0.25 + 18, needInset ? size / 2 + 28 : 0);
     const total = 2 * r + gap + 2 * R;
     const left = -total / 2;
-    const yOff = h * 0.02;
     const xs = left + r, xb = left + 2 * r + gap + R;
 
     this.place(bi, xb, yOff, R, time);

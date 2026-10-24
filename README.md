@@ -35,8 +35,8 @@ Scroll on and the camera keeps zooming out: asteroids give way to moons, planets
 Inspired by [neal.fun/size-of-life](https://neal.fun/size-of-life/), but for the cosmos.
 
 <div align="center">
-<a href="https://legendacr.github.io/size-of-space/#moon"><img src="docs/journey.gif" alt="Scrolling from the Moon past the planets and the Sun to giant stars" width="100%" /></a>
-<p><sub><b>THE JOURNEY</b> · from the Moon, past the planets and the Sun, to the giant stars</sub></p>
+<a href="https://legendacr.github.io/size-of-space/#mercury"><img src="docs/journey.gif" alt="A tour of the Solar System followed by three size comparisons" width="100%" /></a>
+<p><sub><b>THE JOURNEY</b> · a slow tour of the Solar System, then Earth vs the Sun, the Sun vs Betelgeuse and the Sun vs the observable universe</sub></p>
 </div>
 
 <table>

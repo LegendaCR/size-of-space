@@ -47,6 +47,8 @@ let cmpLog = 0; // animated log(small / big diameter)
 // `?p=12.5` pins the camera at a fractional position (used to render README frames).
 const pinned = parseFloat(new URLSearchParams(location.search).get('p') ?? '');
 let target = compareFromHash() ? 0 : Number.isFinite(pinned) ? pinned : fromHash();
+// `?cr=0.5` pins the compare animation (0 = equal sizes, 1 = true scale), for README frames.
+const pinnedCompare = parseFloat(new URLSearchParams(location.search).get('cr') ?? '');
 let progress = target;
 let lastInput = 0;
 let panelIndex = -1;
@@ -348,6 +350,7 @@ function compareFrame(now: number, dt: number) {
   const { a, b } = cmp!;
   const want = Math.log(Math.min(OBJECTS[a].d, OBJECTS[b].d) / Math.max(OBJECTS[a].d, OBJECTS[b].d));
   cmpLog += (want - cmpLog) * Math.min(1, dt * 3);
+  if (Number.isFinite(pinnedCompare)) cmpLog = want * pinnedCompare;
   if (Math.abs(want - cmpLog) < 1e-3) cmpLog = want;
   const res = universe.renderCompare(a, b, Math.exp(cmpLog), (now - t0) / 1000);
   placed = [res.big, ...(a !== b ? [res.small] : [])];
