@@ -1,0 +1,282 @@
+import './style.css';
+import { OBJECTS } from './data/objects';
+import { Universe, type Placed } from './render/scene';
+import { STRINGS, detectLang, type Lang } from './i18n';
+import { formatAlt, formatLength, formatRatio, scaleBar } from './format';
+import { Ambient } from './audio';
+
+const N = OBJECTS.length;
+const EARTH = OBJECTS.find((o) => o.id === 'earth')!;
+const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+
+const canvas = $<HTMLCanvasElement>('gl');
+let universe: Universe;
+try {
+  universe = new Universe(canvas);
+} catch {
+  document.body.innerHTML = '<p class="nogl">Size of Space needs WebGL. Please try a modern browser.</p>';
+  throw new Error('WebGL unavailable');
+}
+
+let lang: Lang = detectLang();
+let S = STRINGS[lang];
+const ambient = new Ambient();
+
+// ---------- state ----------
+const fromHash = () => {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const i = OBJECTS.findIndex((o) => o.id === id);
+  return i >= 0 ? i : 0;
+};
+let target = fromHash();
+let progress = target;
+let lastInput = 0;
+let panelIndex = -1;
+const labelWidths: number[] = [];
+
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const setTarget = (v: number) => {
+  target = clamp(v, 0, N - 1);
+  lastInput = performance.now();
+};
+const go = (i: number) => {
+  closePanel();
+  setTarget(Math.round(i));
+};
+
+// ---------- labels ----------
+const labelsEl = $('labels');
+const labelEls = OBJECTS.map((o, i) => {
+  const el = document.createElement('button');
+  el.className = 'label';
+  el.innerHTML = '<span class="n"></span><span class="s"></span>';
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (Math.round(progress) === i && Math.abs(progress - i) < 0.05) openPanel(i);
+    else go(i);
+  });
+  labelsEl.appendChild(el);
+  return el;
+});
+
+function refreshLabels() {
+  OBJECTS.forEach((o, i) => {
+    const el = labelEls[i];
+    el.querySelector('.n')!.textContent = o.name[lang];
+    el.querySelector('.s')!.textContent = formatLength(o.d, lang, S);
+  });
+}
+
+// ---------- track ----------
+const ticks = $('ticks');
+OBJECTS.forEach((o, i) => {
+  const t = document.createElement('button');
+  t.className = 'tick';
+  t.style.left = `${(i / (N - 1)) * 100}%`;
+  t.dataset.cat = o.cat;
+  t.addEventListener('click', (e) => { e.stopPropagation(); go(i); });
+  ticks.appendChild(t);
+});
+
+const track = $('track');
+let dragTrack = false;
+const trackTo = (clientX: number) => {
+  const rect = track.getBoundingClientRect();
+  setTarget(((clientX - rect.left) / rect.width) * (N - 1));
+};
+track.addEventListener('pointerdown', (e) => {
+  dragTrack = true;
+  track.setPointerCapture(e.pointerId);
+  trackTo(e.clientX);
+});
+track.addEventListener('pointermove', (e) => dragTrack && trackTo(e.clientX));
+track.addEventListener('pointerup', () => { dragTrack = false; setTarget(Math.round(target)); });
+
+// ---------- panel ----------
+const panel = $('panel');
+function openPanel(i: number) {
+  panelIndex = i;
+  const o = OBJECTS[i];
+  $('p-cat').textContent = S.cat[o.cat];
+  $('p-name').textContent = o.name[lang];
+  const alt = formatAlt(o.d, lang, S);
+  $('p-size').innerHTML = formatLength(o.d, lang, S) + (alt ? `<small>${alt}</small>` : '');
+  const e = o.d / EARTH.d;
+  $('p-earth').textContent = o.id === 'earth' ? '1×' : e >= 1 ? S.earths(formatRatio(e, lang)) : S.smallerThanEarth(formatRatio(e, lang));
+  const dRow = $('p-dist-row');
+  if (o.dist === null) dRow.hidden = true;
+  else {
+    dRow.hidden = false;
+    $('p-dist').textContent = o.dist === 0 ? S.youAreHere : formatLength(o.dist, lang, S);
+  }
+  $('p-ratio').textContent = i > 0 ? S.prevRatio(formatRatio(o.d / OBJECTS[i - 1].d, lang), OBJECTS[i - 1].name[lang]) : '';
+  $('p-fact').textContent = o.fact[lang];
+  $<HTMLAnchorElement>('p-wiki').href = `https://en.wikipedia.org/wiki/${o.wiki}`;
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+}
+function closePanel() {
+  panelIndex = -1;
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+}
+$('panel-close').addEventListener('click', closePanel);
+
+// ---------- i18n ----------
+function applyLang() {
+  S = STRINGS[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
+    const v = S[el.dataset.i18n as keyof typeof S];
+    if (typeof v === 'string') el.textContent = v;
+  });
+  $('btn-lang').textContent = lang === 'en' ? 'RU' : 'EN';
+  refreshLabels();
+  labelWidths.length = 0;
+  if (panelIndex >= 0) openPanel(panelIndex);
+}
+$('btn-lang').addEventListener('click', () => {
+  lang = lang === 'en' ? 'ru' : 'en';
+  try { localStorage.setItem('sos-lang', lang); } catch { /* ignore */ }
+  applyLang();
+});
+applyLang();
+
+$('btn-sound').addEventListener('click', () => {
+  const on = ambient.toggle();
+  $('btn-sound').setAttribute('aria-pressed', String(on));
+});
+$('btn-prev').addEventListener('click', () => go(Math.round(target) - 1));
+$('btn-next').addEventListener('click', () => go(Math.round(target) + 1));
+$('btn-restart').addEventListener('click', () => go(0));
+
+// ---------- input ----------
+window.addEventListener('wheel', (e) => {
+  if ((e.target as HTMLElement).closest('.panel')) return;
+  e.preventDefault();
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  const unit = e.deltaMode === 1 ? 30 : e.deltaMode === 2 ? 600 : 1;
+  setTarget(target + clamp(d * unit, -120, 120) * 0.0045);
+}, { passive: false });
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(Math.round(target) + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(Math.round(target) - 1); }
+  else if (e.key === 'Home') go(0);
+  else if (e.key === 'End') go(N - 1);
+  else if (e.key === 'Escape') closePanel();
+  else if (e.key === 'Enter' || e.key === 'i') openPanel(Math.round(progress));
+});
+
+let drag: { x: number; t: number; moved: boolean } | null = null;
+canvas.addEventListener('pointerdown', (e) => {
+  drag = { x: e.clientX, t: target, moved: false };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x;
+  if (Math.abs(dx) > 6) drag.moved = true;
+  if (drag.moved) setTarget(drag.t - dx / Math.max(universe.width * 0.35, 200));
+});
+canvas.addEventListener('pointerup', (e) => {
+  if (drag && !drag.moved) handleClick(e.clientX, e.clientY);
+  drag = null;
+});
+
+let placed: Placed[] = [];
+function handleClick(cx: number, cy: number) {
+  const x = cx - universe.width / 2, y = cy - universe.height / 2;
+  // smallest object under the pointer wins
+  const hit = placed
+    .filter((p) => Math.hypot(p.x - x, p.y - y) < Math.max(p.r, 16))
+    .sort((a, b) => a.r - b.r)[0];
+  if (!hit) { closePanel(); return; }
+  if (hit.index === Math.round(progress) && Math.abs(progress - hit.index) < 0.1) openPanel(hit.index);
+  else go(hit.index);
+}
+
+window.addEventListener('hashchange', () => go(fromHash()));
+
+// ---------- loop ----------
+const intro = $('intro'), hint = $('hint'), outro = $('outro');
+const thumb = $('thumb'), fill = $('track-fill'), counter = $('counter');
+const bar = $('scale-bar'), barLabel = $('scale-label');
+let last = performance.now();
+let hashIndex = -1;
+const t0 = last;
+
+function resize() {
+  universe.resize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function frame(now: number) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  // Gentle snapping to the nearest object once input stops.
+  if (now - lastInput > 450 && !dragTrack && !drag) {
+    const snap = Math.round(target);
+    target += (snap - target) * Math.min(1, dt * 5);
+  }
+  progress += (target - progress) * Math.min(1, dt * 5.5);
+  if (Math.abs(target - progress) < 1e-4) progress = target;
+
+  placed = universe.render(progress, (now - t0) / 1000);
+  const cur = Math.round(progress);
+
+  // labels: the focused one first, then neighbours, skipping any that would collide
+  const visible = new Set<number>();
+  const boxes: [number, number, number, number][] = [];
+  const order = [...placed].sort((a, b) => Math.abs(a.index - progress) - Math.abs(b.index - progress));
+  for (const p of order) {
+    if (p.r < 2.5 || (p.r < 9 && p.index !== cur)) continue;
+    const el = labelEls[p.index];
+    const ly = universe.height / 2 + p.y + p.r * Math.min(p.ext, 1.12) + 14;
+    const lx = universe.width / 2 + p.x;
+    if (ly > universe.height - 100) continue;
+    if (!labelWidths[p.index] && el.offsetWidth) labelWidths[p.index] = el.offsetWidth;
+    const w = (labelWidths[p.index] || 120) / 2 + 8;
+    const box: [number, number, number, number] = [lx - w, ly, lx + w, ly + 40];
+    if (box[2] < 0 || box[0] > universe.width) continue;
+    if (boxes.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) continue;
+    boxes.push(box);
+    visible.add(p.index);
+    const focus = 1 - clamp(Math.abs(progress - p.index), 0, 1);
+    el.style.transform = `translate(${lx}px, ${ly}px) translateX(-50%)`;
+    el.style.opacity = String(0.45 + 0.55 * focus);
+    if (el.classList.contains('focus') !== (p.index === cur)) {
+      el.classList.toggle('focus', p.index === cur);
+      labelWidths[p.index] = 0;
+    }
+  }
+  labelEls.forEach((el, i) => el.classList.toggle('show', visible.has(i)));
+
+  // chrome
+  const pct = (progress / (N - 1)) * 100;
+  thumb.style.left = `${pct}%`;
+  fill.style.width = `${pct}%`;
+  counter.textContent = `${cur + 1} / ${N}`;
+  intro.classList.toggle('hide', progress > 0.35);
+  hint.classList.toggle('hide', progress > 0.35);
+  outro.hidden = progress < N - 1.3;
+  outro.classList.toggle('show', progress > N - 1.15);
+
+  const { k } = universe.view(progress);
+  const sb = scaleBar(1 / k, Math.min(140, universe.width * 0.25), lang, S);
+  bar.style.width = `${sb.px}px`;
+  barLabel.textContent = sb.label;
+
+  ambient.setDepth(progress / (N - 1));
+
+  if (Math.abs(progress - cur) < 0.02 && hashIndex !== cur) {
+    hashIndex = cur;
+    history.replaceState(null, '', cur === 0 ? location.pathname + location.search : `#${OBJECTS[cur].id}`);
+  }
+  if (panelIndex >= 0 && Math.abs(progress - panelIndex) > 0.6) closePanel();
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Size of Space: from asteroids to the observable universe</title>
+    <meta name="description" content="An interactive journey through the scale of the cosmos: compare asteroids, moons, planets, stars, black holes, nebulae, galaxies and the whole observable universe." />
+    <meta name="theme-color" content="#03040a" />
+    <meta property="og:title" content="Size of Space" />
+    <meta property="og:description" content="Scroll from a tiny asteroid to the edge of the observable universe." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://legendacr.github.io/size-of-space/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div id="labels"></div>
+
+    <header class="top">
+      <a class="brand" href="./" aria-label="Size of Space">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="9" cy="20" r="3" /><circle cx="17" cy="17" r="6" /><circle cx="27" cy="12" r="10" opacity=".5" /></svg>
+        <span data-i18n="title"></span>
+      </a>
+      <div class="actions">
+        <button id="btn-sound" class="icon-btn" aria-pressed="false" title="Sound">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" /></svg>
+        </button>
+        <button id="btn-lang" class="icon-btn text" title="Language">RU</button>
+        <a class="icon-btn" href="https://github.com/LegendaCR/size-of-space" target="_blank" rel="noopener" title="GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z" /></svg>
+        </a>
+      </div>
+    </header>
+
+    <section id="intro" class="intro">
+      <h1 data-i18n="title"></h1>
+      <p data-i18n="tagline"></p>
+    </section>
+    <div id="hint" class="hint"><span data-i18n="start"></span><span class="arrow">→</span></div>
+
+    <section id="outro" class="outro" hidden>
+      <h2 data-i18n="endTitle"></h2>
+      <p data-i18n="endText"></p>
+      <div class="row">
+        <button id="btn-restart" class="pill" data-i18n="restart"></button>
+        <a class="pill primary" href="https://github.com/LegendaCR/size-of-space" target="_blank" rel="noopener">★ <span data-i18n="star"></span></a>
+      </div>
+    </section>
+
+    <aside id="panel" class="panel" aria-hidden="true">
+      <button id="panel-close" class="close" aria-label="Close">×</button>
+      <div class="cat" id="p-cat"></div>
+      <h2 id="p-name"></h2>
+      <dl>
+        <div><dt data-i18n="diameter"></dt><dd id="p-size"></dd></div>
+        <div><dt data-i18n="compared"></dt><dd id="p-earth"></dd></div>
+        <div id="p-dist-row"><dt data-i18n="distance"></dt><dd id="p-dist"></dd></div>
+      </dl>
+      <p class="ratio" id="p-ratio"></p>
+      <p class="fact" id="p-fact"></p>
+      <a id="p-wiki" class="wiki" target="_blank" rel="noopener"><span data-i18n="readMore"></span> ↗</a>
+    </aside>
+
+    <footer class="bottom">
+      <div class="scale"><div class="bar" id="scale-bar"></div><span id="scale-label"></span></div>
+      <div class="track" id="track">
+        <div class="rail"><div class="fill" id="track-fill"></div></div>
+        <div class="ticks" id="ticks"></div>
+        <div class="thumb" id="thumb"></div>
+      </div>
+      <div class="nav">
+        <button id="btn-prev" class="icon-btn" aria-label="Previous">←</button>
+        <span id="counter"></span>
+        <button id="btn-next" class="icon-btn" aria-label="Next">→</button>
+      </div>
+    </footer>
+
+    <noscript>Size of Space needs JavaScript and WebGL.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

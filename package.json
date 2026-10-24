@@ -1,0 +1,36 @@
+{
+  "name": "size-of-space",
+  "version": "1.0.0",
+  "description": "An interactive journey through the scale of the cosmos — from a tiny asteroid to the observable universe.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "astronomy",
+    "space",
+    "universe",
+    "scale",
+    "threejs",
+    "webgl",
+    "visualization"
+  ],
+  "type": "module",
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LegendaCR/size-of-space"
+  },
+  "homepage": "https://legendacr.github.io/size-of-space/"
+}
