@@ -29,9 +29,32 @@ export function formatLength(m: number, lang: Lang, s: Strings) {
 }
 
 /** A secondary representation (e.g. km next to AU) for the info panel. */
+/** Kilometres in words: "1.06 billion km". */
+function kmWords(m: number, lang: Lang, s: Strings) {
+  const km = m / KM;
+  if (km >= 1e9) return `${num(km / 1e9, lang)} ${s.units.bkm}`;
+  if (km >= 1e6) return `${num(km / 1e6, lang)} ${s.units.mkm}`;
+  return `${num(km, lang)} ${s.units.km}`;
+}
+
+/** Explanation of the unit used for a length, if it is an unfamiliar one. */
+export function unitTip(m: number, s: Strings) {
+  const [u] = unitFor(m);
+  if (u === 'au') return s.tipAu;
+  if (u === 'ly' || u === 'mly' || u === 'bly') return s.tipLy;
+  return null;
+}
+
+/** Short conversion shown under the label for astronomical units. */
+export function formatHint(m: number, lang: Lang, s: Strings) {
+  const [u] = unitFor(m);
+  return u === 'au' ? `≈ ${kmWords(m, lang, s)}` : null;
+}
+
 export function formatAlt(m: number, lang: Lang, s: Strings) {
   const [u] = unitFor(m);
-  if (u === 'au' || u === 'mkm') return `${num(m / KM, lang, 3)} ${s.units.km}`;
+  if (u === 'mkm') return null;
+  if (u === 'au') return `≈ ${kmWords(m, lang, s)}`;
   if (u === 'ly' && m < 100 * LY) return `${num(m / AU, lang, 3)} ${s.units.au}`;
   if (u === 'km' || u === 'm') return null;
   return null;

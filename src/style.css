@@ -398,3 +398,32 @@ body.comparing #btn-compare { border-color: rgba(157, 180, 255, 0.55); backgroun
 .cmp-leader { position: absolute; width: 1px; background: linear-gradient(rgba(157, 180, 255, 0.5), rgba(157, 180, 255, 0.1)); }
 .cmp-dot { position: absolute; border-radius: 50%; border: 1px solid rgba(157, 180, 255, 0.7); }
 .cmp-dot.point { border: 0; background: #fff; box-shadow: 0 0 4px 1px rgba(200, 215, 255, 0.9); }
+
+/* ---------- unit hints ---------- */
+.label .a { font-size: 11px; color: var(--muted); display: none; }
+.label.focus .a:not(:empty) { display: block; margin-top: 1px; }
+[data-tip] { position: relative; cursor: help; text-decoration: underline dotted rgba(255, 207, 138, 0.45); text-underline-offset: 3px; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: rgba(10, 12, 26, 0.92);
+  color: var(--fg);
+  font: 400 12px/1.45 var(--body);
+  text-align: left;
+  white-space: normal;
+  text-shadow: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  pointer-events: none;
+}
+.scale [data-tip]:hover::after { left: 0; transform: none; }
+.scale span { pointer-events: auto; align-self: flex-start; }
+.panel dd [data-tip]:hover::after, .panel dd[data-tip]:hover::after { left: 0; transform: none; }

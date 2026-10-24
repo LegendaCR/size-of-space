@@ -2,7 +2,7 @@ import './style.css';
 import { OBJECTS } from './data/objects';
 import { Universe, type Placed } from './render/scene';
 import { STRINGS, detectLang, type Lang } from './i18n';
-import { formatAlt, formatLength, formatRatio, scaleBar } from './format';
+import { formatAlt, formatHint, formatLength, formatRatio, scaleBar, unitTip } from './format';
 import { Ambient } from './audio';
 
 const N = OBJECTS.length;
@@ -60,12 +60,17 @@ const go = (i: number) => {
   setTarget(Math.round(i));
 };
 
+const setTip = (el: HTMLElement, tip: string | null) => {
+  if (tip) el.dataset.tip = tip;
+  else delete el.dataset.tip;
+};
+
 // ---------- labels ----------
 const labelsEl = $('labels');
 const labelEls = OBJECTS.map((o, i) => {
   const el = document.createElement('button');
   el.className = 'label';
-  el.innerHTML = '<span class="n"></span><span class="s"></span>';
+  el.innerHTML = '<span class="n"></span><span class="s"></span><span class="a"></span>';
   el.addEventListener('click', (e) => {
     e.stopPropagation();
     if (cmp || (Math.round(progress) === i && Math.abs(progress - i) < 0.05)) openPanel(i);
@@ -79,7 +84,10 @@ function refreshLabels() {
   OBJECTS.forEach((o, i) => {
     const el = labelEls[i];
     el.querySelector('.n')!.textContent = o.name[lang];
-    el.querySelector('.s')!.textContent = formatLength(o.d, lang, S);
+    const sEl = el.querySelector<HTMLElement>('.s')!;
+    sEl.textContent = formatLength(o.d, lang, S);
+    setTip(sEl, unitTip(o.d, S));
+    el.querySelector('.a')!.textContent = formatHint(o.d, lang, S) ?? '';
   });
 }
 
@@ -116,7 +124,8 @@ function openPanel(i: number) {
   $('p-cat').textContent = S.cat[o.cat];
   $('p-name').textContent = o.name[lang];
   const alt = formatAlt(o.d, lang, S);
-  $('p-size').innerHTML = formatLength(o.d, lang, S) + (alt ? `<small>${alt}</small>` : '');
+  $('p-size').innerHTML = `<span>${formatLength(o.d, lang, S)}</span>` + (alt ? `<small>${alt}</small>` : '');
+  setTip($('p-size').querySelector('span')!, unitTip(o.d, S));
   const e = o.d / EARTH.d;
   $('p-earth').textContent = o.id === 'earth' ? '1×' : e >= 1 ? S.earths(formatRatio(e, lang)) : S.smallerThanEarth(formatRatio(e, lang));
   const dRow = $('p-dist-row');
@@ -124,6 +133,7 @@ function openPanel(i: number) {
   else {
     dRow.hidden = false;
     $('p-dist').textContent = o.dist === 0 ? S.youAreHere : formatLength(o.dist, lang, S);
+    setTip($('p-dist'), o.dist ? unitTip(o.dist, S) : null);
   }
   $('p-ratio').textContent = i > 0 ? S.prevRatio(formatRatio(o.d / OBJECTS[i - 1].d, lang), OBJECTS[i - 1].name[lang]) : '';
   $('p-fact').textContent = o.fact[lang];
@@ -442,7 +452,10 @@ function frame(now: number) {
   const { k } = universe.view(progress);
   const sb = scaleBar(1 / k, Math.min(140, universe.width * 0.25), lang, S);
   bar.style.width = `${sb.px}px`;
-  barLabel.textContent = sb.label;
+  if (barLabel.textContent !== sb.label) {
+    barLabel.textContent = sb.label;
+    setTip(barLabel, unitTip(sb.px / k, S));
+  }
 
   ambient.setDepth(progress / (N - 1));
 
