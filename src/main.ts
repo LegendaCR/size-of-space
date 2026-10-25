@@ -50,6 +50,8 @@ const pinned = parseFloat(new URLSearchParams(location.search).get('p') ?? '');
 let target = compareFromHash() ? 0 : Number.isFinite(pinned) ? pinned : fromHash();
 // `?cr=0.5` pins the compare animation (0 = equal sizes, 1 = true scale), for README frames.
 const pinnedCompare = parseFloat(new URLSearchParams(location.search).get('cr') ?? '');
+// `?t=12.3` pins the animation clock (seconds), for rendering video frames.
+const pinnedTime = parseFloat(new URLSearchParams(location.search).get('t') ?? '');
 let progress = target;
 let lastInput = 0;
 let panelIndex = -1;
@@ -354,6 +356,7 @@ const bar = $('scale-bar'), barLabel = $('scale-label');
 let last = performance.now();
 let hashIndex = -1;
 const t0 = last;
+const clock = (now: number) => (Number.isFinite(pinnedTime) ? pinnedTime : (now - t0) / 1000);
 
 function compareFrame(now: number, dt: number) {
   const { a, b } = cmp!;
@@ -361,7 +364,7 @@ function compareFrame(now: number, dt: number) {
   cmpLog += (want - cmpLog) * Math.min(1, dt * 3);
   if (Number.isFinite(pinnedCompare)) cmpLog = want * pinnedCompare;
   if (Math.abs(want - cmpLog) < 1e-3) cmpLog = want;
-  const res = universe.renderCompare(a, b, Math.exp(cmpLog), (now - t0) / 1000);
+  const res = universe.renderCompare(a, b, Math.exp(cmpLog), clock(now));
   placed = [res.big, ...(a !== b ? [res.small] : [])];
   const shown = new Set<number>();
   for (const p of placed) {
@@ -423,7 +426,7 @@ function frame(now: number) {
   ambient.nudge(Math.abs(progress - before) * 0.5);
   if (Math.abs(target - progress) < 1e-4) progress = target;
 
-  placed = universe.render(progress, (now - t0) / 1000);
+  placed = universe.render(progress, clock(now));
   const cur = Math.round(progress);
 
   // labels: the focused one first, then neighbours, skipping any that would collide
