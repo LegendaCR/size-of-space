@@ -111,6 +111,13 @@ export class Universe {
     });
   }
 
+  /** How far the clearly visible part reaches sideways, in radii (disks, rings). */
+  private visualExt(o: SpaceObject) {
+    if (o.kind === 'blackhole') return 3.1;
+    if (o.look.p && o.look.p[3] > 0 && o.kind === 'textured') return 2.3;
+    return 1;
+  }
+
   ext(o: SpaceObject) {
     return o.look.ext ?? DEFAULT_EXT[o.kind] ?? 1;
   }
@@ -277,15 +284,18 @@ export class Universe {
     // Keep everything between the selector bar (top) and the ratio text + labels (bottom).
     const top = mobile ? 172 : 112, bottom = 160;
     const yOff = h / 2 - (top + h - bottom) / 2;
-    const R = Math.max(24, Math.min(w * (mobile ? 0.3 : 0.24), h * 0.27, ((h - top - bottom) / 2) * 0.95));
+    const vb = this.visualExt(OBJECTS[bi]);
+    const R = Math.max(24, Math.min(w * (mobile ? 0.3 : 0.24), h * 0.27, ((h - top - bottom) / 2) * 0.95) / Math.sqrt(vb));
     const r = R * ratio;
     const needInset = si !== bi && r < 14;
     const dotY = h / 2 - yOff;
     const size = Math.round(Math.max(64, Math.min(mobile ? 140 : 200, R * 1.1, dotY - top - 40)));
     const gap = Math.max(36, R * 0.25 + 18, needInset ? size / 2 + 28 : 0);
-    const total = 2 * r + gap + 2 * R;
+    const half = R * vb; // visible half-width of the big object
+    const sHalf = r * this.visualExt(OBJECTS[si]); // and of the small one
+    const total = 2 * sHalf + gap + 2 * half;
     const left = -total / 2;
-    const xs = left + r, xb = left + 2 * r + gap + R;
+    const xs = left + sHalf, xb = left + 2 * sHalf + gap + half;
 
     this.place(bi, xb, yOff, R, time);
     if (si !== bi && r > 0.35) this.place(si, xs, yOff, r, time);
@@ -300,7 +310,7 @@ export class Universe {
       // A magnifier floating above the tiny object's true position.
       const cx = Math.max(xs, -w / 2 + 12 + size / 2);
       const cy = yOff + 40 + size / 2;
-      const ir = (size * 0.36) / Math.min(this.ext(OBJECTS[si]), 1.6);
+      const ir = (size * 0.36) / Math.max(Math.min(this.ext(OBJECTS[si]), 1.6), this.visualExt(OBJECTS[si]) * 0.95);
       this.meshes[bi]!.visible = false;
       this.place(si, cx, cy, ir, time);
       const rd = this.renderer;

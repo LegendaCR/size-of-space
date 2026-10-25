@@ -19,7 +19,7 @@ const smooth = (a: number, b: number, x: number) => {
 };
 
 export class Ambient {
-  private ctx: AudioContext | null = null;
+  private ctx: BaseAudioContext | null = null;
   private master!: GainNode;
   private dry!: GainNode;
   private wet!: GainNode;
@@ -35,8 +35,7 @@ export class Ambient {
   on = false;
   started = false;
 
-  private build() {
-    const ctx = new AudioContext();
+  private build(ctx: BaseAudioContext = new AudioContext()) {
     this.ctx = ctx;
 
     const comp = ctx.createDynamicsCompressor();
@@ -76,7 +75,7 @@ export class Ambient {
 
     this.nextChord = ctx.currentTime + 0.1;
     this.nextStep = ctx.currentTime + 0.5;
-    this.timer = window.setInterval(() => this.schedule(), 100);
+    if (ctx instanceof AudioContext) this.timer = window.setInterval(() => this.schedule(), 100);
   }
 
   /** Route a voice to dry + reverb, with stereo position. */
@@ -247,13 +246,12 @@ export class Ambient {
 
   // ---------- sequencer ----------
 
-  private schedule() {
-    const ctx = this.ctx!;
+  private schedule(now = this.ctx!.currentTime) {
     if (!this.on) return;
     this.intensity += (this.target - this.intensity) * 0.08;
     this.motion *= 0.9;
     const I = this.intensity;
-    const ahead = ctx.currentTime + 0.4;
+    const ahead = now + 0.4;
 
     const chordDur = 9 - 3 * I;
     while (this.nextChord < ahead) {
@@ -294,13 +292,13 @@ export class Ambient {
       this.nextStep += stepDur;
     }
 
-    this.master.gain.setTargetAtTime(0.32 + 0.4 * I, ctx.currentTime, 1.5);
+    this.master.gain.setTargetAtTime(0.32 + 0.4 * I, now, 1.5);
   }
 
   start() {
     if (this.started && this.on) return;
     if (!this.ctx) this.build();
-    const ctx = this.ctx!;
+    const ctx = this.ctx as AudioContext;
     if (ctx.state === 'suspended') void ctx.resume();
     this.started = true;
     this.on = true;
@@ -329,8 +327,26 @@ export class Ambient {
     this.motion = Math.min(1, this.motion + v);
   }
 
+  /**
+   * Render the soundtrack offline (e.g. for a video): `depthAt(t)` gives the
+   * 0..1 progress at each moment, exactly like `setDepth` while browsing.
+   */
+  static async renderOffline(duration: number, depthAt: (t: number) => number, sampleRate = 48000) {
+    const ctx = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
+    const a = new Ambient();
+    a.build(ctx);
+    a.on = a.started = true;
+    a.intensity = depthAt(0);
+    for (let t = 0; t < duration; t += 0.1) {
+      a.target = depthAt(t);
+      a.schedule(t);
+    }
+    a.master.gain.setTargetAtTime(0, Math.max(0, duration - 2), 0.5);
+    return ctx.startRendering();
+  }
+
   dispose() {
     clearInterval(this.timer);
-    void this.ctx?.close();
+    if (this.ctx instanceof AudioContext) void this.ctx.close();
   }
 }
